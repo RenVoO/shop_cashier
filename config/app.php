@@ -159,7 +159,7 @@ return [
         /*
          * Package Service Providers...
          */
-
+        Jackiedo\Cart\CartServiceProvider::class,
         /*
          * Application Service Providers...
          */
@@ -182,6 +182,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
+        'Cart' => Jackiedo\Cart\Facades\Cart::class,
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
