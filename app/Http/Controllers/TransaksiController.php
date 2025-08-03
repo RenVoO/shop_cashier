@@ -60,6 +60,7 @@ class TransaksiController extends Controller
 
         $no = $lastPenjualan ? $lastPenjualan->id + 1 : 1;
         $no = sprintf("%04d", $no);
+        $allItems = $cartDetails->get('items');
 
         $penjualan = Penjualan::create([
             'user_id' => $user->id,
@@ -73,7 +74,7 @@ class TransaksiController extends Controller
             'subtotal' => $cartDetails->get('subtotal')
         ]);
 
-        $allItems = $cartDetails->get('items');
+        
 
         foreach ($allItems as $key => $value) {
             $item = $allItems->get($key);
@@ -85,7 +86,21 @@ class TransaksiController extends Controller
                 'jumlah' => $item->quantity,
                 'subtotal' => $item->subtotal
             ]);
-        }
+
+            
+            $produk = Produk::find($item->id);
+if ($produk) {
+    if ($produk->stok < $item->quantity) {
+        // Kirim nama produk ke session
+        return redirect()
+            ->route('transaksi.create')
+            ->with('store', 'gagal')
+            ->with('produk_kurang', [$produk->nama]);
+    }
+
+    $produk->stok -= $item->quantity;
+    $produk->save();
+        }}
 
         $cart->destroy();
 
