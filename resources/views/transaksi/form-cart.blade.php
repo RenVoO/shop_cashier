@@ -12,59 +12,11 @@
 <table class="table table-sm mt-3">
     <thead>
         <tr>
-            <th colspan="2" class="border-0"> Hasil Pencarian :</th>
+            <th colspan="2" class="border-0">Hasil Pencarian :</th>
         </tr>
     </thead>
     <tbody id="resultPelanggan"></tbody>
 </table>
-
-@push('scripts')
-<script>
-    $(function() {
-        $('#formCariPelanggan').submit(function(e) {
-            e.preventDefault();
-            const search = $('#searchPelanggan').val()
-
-            if (search.length >= 3) {
-                fetchCariPelanggan(search)
-            }
-        })
-    })
-
-    function fetchCariPelanggan(search) {
-        $.getJSON("/transaksi/pelanggan", {
-            search: search
-        }, function(response) {
-            $('#resultPelanggan').html('')
-            response.forEach(item => {
-                addResultPelanggan(item)
-            });
-        });
-    }
-
-    function addResultPelanggan(item) {
-        const {
-            id,
-            nama
-        } = item
-
-        const btn = `<button type="button" class="btn btn-xs btn-success" onclick="addPelanggan(${id})"> Pilih </button>`;
-        const row = `<tr>
-            <td>${nama}</td>
-            <td class="text-right">${btn}</td>
-        </tr>`;
-        $('#resultPelanggan').append(row)
-    }
-
-    function addPelanggan(id) {
-        $.post("/transaksi/pelanggan", {
-            id: id
-        }, function(response) {
-            fetchCart();
-        }, "json");
-    }
-</script>
-@endpush
 
 <div class="card card-orange card-outline">
     <div class="card-body">
@@ -103,12 +55,13 @@
                     <th>Qty</th>
                     <th>Harga</th>
                     <th>Sub Total</th>
-                    <th></th>
+                    <th>Keterangan</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody id="resultCart">
                 <tr>
-                    <td colspan="5" class="text-center">Tidak ada data.</td>
+                    <td colspan="6" class="text-center">Tidak ada data.</td>
                 </tr>
             </tbody>
         </table>
@@ -156,6 +109,14 @@
 <script>
     $(function() {
         fetchCart();
+
+        $('#formCariPelanggan').submit(function(e) {
+            e.preventDefault();
+            const search = $('#searchPelanggan').val();
+            if (search.length >= 3) {
+                fetchCariPelanggan(search);
+            }
+        });
     });
 
     function fetchCart() {
@@ -175,20 +136,45 @@
             $('#total, #totalJumlah').html(rupiah(total));
             $('#totalBayar').val(total);
 
-            for (const property in items) {
-                addRow(items[property])
-            }
-
-            if (Array.isArray(items)) {
-                $('#resultCart').html('<tr><td colspan="5" class="text-center">Tidak ada data.</td></tr>');
+            if (Object.keys(items).length === 0) {
+                $('#resultCart').html('<tr><td colspan="6" class="text-center">Tidak ada data.</td></tr>');
+            } else {
+                for (const key in items) {
+                    addRow(items[key]);
+                }
             }
 
             if (!Array.isArray(extra_info)) {
-                const { id, nama } = extra_info.pelanggan
+                const { id, nama } = extra_info.pelanggan;
                 $('#namaPelanggan').val(nama);
                 $('#pelangganId').val(id);
             }
         });
+    }
+
+    function fetchCariPelanggan(search) {
+        $.getJSON("/transaksi/pelanggan", { search: search }, function(response) {
+            $('#resultPelanggan').html('');
+            response.forEach(item => {
+                addResultPelanggan(item);
+            });
+        });
+    }
+
+    function addResultPelanggan(item) {
+        const { id, nama } = item;
+        const btn = `<button type="button" class="btn btn-xs btn-success" onclick="addPelanggan(${id})">Pilih</button>`;
+        const row = `<tr>
+            <td>${nama}</td>
+            <td class="text-right">${btn}</td>
+        </tr>`;
+        $('#resultPelanggan').append(row);
+    }
+
+    function addPelanggan(id) {
+        $.post("/transaksi/pelanggan", { id: id }, function(response) {
+            fetchCart();
+        }, "json");
     }
 
     function addRow(item) {
@@ -200,17 +186,18 @@
             total_price
         } = item;
 
-        let btn = `<button type="button" class="btn btn-xs btn-success mr-2" onclick="ePut('${hash}',1)">
-                        <i class="fas fa-plus"></i>
-                    </button>`;
+        const btn = `
+            <button type="button" class="btn btn-xs btn-success mr-2" onclick="ePut('${hash}', 1)">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button type="button" class="btn btn-xs btn-primary mr-2" onclick="ePut('${hash}', -1)">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-xs btn-danger" onclick="eDel('${hash}')">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
 
-        btn += `<button type="button" class="btn btn-xs btn-primary mr-2" onclick="ePut('${hash}',-1)">
-                        <i class="fas fa-minus"></i>
-                    </button>`;
-
-        btn += `<button type="button" class="btn btn-xs btn-danger" onclick="eDel('${hash}')">
-                        <i class="fas fa-times"></i>
-                    </button>`;
 
         const row = `<tr>
             <td>${title}</td>
@@ -231,9 +218,7 @@
         $.ajax({
             type: "PUT",
             url: "/cart/" + hash,
-            data: {
-                qty: qty
-            },
+            data: { qty: qty },
             dataType: "json",
             success: function(response) {
                 fetchCart();
