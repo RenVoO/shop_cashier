@@ -35,7 +35,7 @@ class CartController extends Controller
             $cart->addItem([
                 'id' => $produk->id,
                 'title' => $produk->nama_produk,
-                'quantity' => 90,
+                'quantity' => 170,
                 'price' => $produk->harga
             ]);
 

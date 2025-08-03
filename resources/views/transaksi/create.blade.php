@@ -6,6 +6,11 @@
 @endsection
 
 @section('content')
+  @if (session('store') == 'gagal')
+        <x-alert type="danger">
+            <strong>Pukimak!</strong> liat stok lu.
+        </x-alert>
+    @endif
 <div class="row">
     <div class="col-4">
         @include('transaksi.form-code')
