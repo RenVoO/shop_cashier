@@ -32,6 +32,9 @@
         <x-nav-item title="Pelanggan" icon="fas fa-users"
          :routes="['pelanggan.index','pelanggan.create]','pelanggan.edit']"/>
 
+         <x-nav-item title="Diskon" icon="fas fa-tag"
+         :routes="['diskon.index','diskon.create','diskon.edit']" />
+
         @can('admin')
         <x-nav-item title="User" icon="fas fa-user-tie"
         :routes="['user.index', 'user.create', 'user.edit']" />

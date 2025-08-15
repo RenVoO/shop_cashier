@@ -8,7 +8,7 @@
 @section('content')
   @if (session('store') == 'gagal')
         <x-alert type="danger">
-            <strong>Pukimak!</strong> liat stok lu.
+            <strong>Gagal</strong> Stok Kurang/Kosong!
         </x-alert>
     @endif
 <div class="row">

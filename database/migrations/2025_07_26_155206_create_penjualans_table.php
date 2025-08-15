@@ -25,7 +25,7 @@ return new class extends Migration
             $table->unsignedInteger('pajak');
             $table->unsignedInteger('total');
             $table->unsignedInteger('tunai');
-            $table->unsignedBigInteger('kembalian');
+            $table->bigInteger('kembalian');
             $table->enum('status',['selesai','batal'])->default('selesai');
         });
     }

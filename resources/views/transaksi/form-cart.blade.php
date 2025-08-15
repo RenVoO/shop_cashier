@@ -1,109 +1,127 @@
-<form action="" method="get" id="formCariPelanggan">
-    <div class="input-group">
-        <input type="text" class="form-control" placeholder="Nama Pelanggan" id="searchPelanggan">
-        <div class="input-group-append">
-            <button type="submit" class="btn btn-primary">
-                Cari
-            </button>
-        </div>
-    </div>
-</form>
-
-<table class="table table-sm mt-3">
-    <thead>
-        <tr>
-            <th colspan="2" class="border-0">Hasil Pencarian :</th>
-        </tr>
-    </thead>
-    <tbody id="resultPelanggan"></tbody>
-</table>
-
-<div class="card card-orange card-outline">
-    <div class="card-body">
+{{-- Total Atas --}}
+<div class="card card-orange card-outline mb-3 shadow-sm">
+    <div class="card-body bg-white">
         <h3 class="m-0 text-right">Rp <span id="totalJumlah">0</span> ,-</h3>
     </div>
 </div>
 
-<form action="{{ route('transaksi.store') }}" method="POST" class="card card-orange card-outline">
+{{-- Form Transaksi --}}
+<form action="{{ route('transaksi.store') }}" method="POST" class="card card-orange card-outline shadow-sm">
     @csrf
-    <div class="card-body">
-        <p class="text-right">
-            Tanggal : {{ $tanggal }}
-        </p>
+    <div class="card-body bg-white">
+        {{-- Informasi Tanggal --}}
+        <div class="mb-3 text-right">
+            <strong>Tanggal :</strong> {{ $tanggal }}
+        </div>
 
-        <div class="row">
-            <div class="col">
+        {{-- Pelanggan dan Kasir --}}
+        <div class="row mb-3">
+            <div class="col-md-6">
                 <label>Nama Pelanggan</label>
                 <input type="text" id="namaPelanggan" class="form-control @error('pelanggan_id') is-invalid @enderror" disabled>
+                <input type="hidden" name="pelanggan_id" id="pelangganId">
                 @error('pelanggan_id')
                 <div class="invalid-feedback">
                     {{ $message }}
                 </div>
                 @enderror
-                <input type="hidden" name="pelanggan_id" id="pelangganId">
             </div>
-            <div class="col">
+            <div class="col-md-6">
                 <label>Nama Kasir</label>
-                <input type="text" class="form-control" value="{{ $nama_kasir }}" disabled>
+                <input type="text" class="form-control bg-light" value="{{ $nama_kasir }}" disabled>
             </div>
         </div>
 
-        <table class="table table-striped table-hover table-bordered mt-3">
-            <thead>
-                <tr>
-                    <th>Nama Produk</th>
-                    <th>Qty</th>
-                    <th>Harga</th>
-                    <th>Sub Total</th>
-                    <th>Keterangan</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody id="resultCart">
-                <tr>
-                    <td colspan="6" class="text-center">Tidak ada data.</td>
-                </tr>
-            </tbody>
-        </table>
+        {{-- Tabel Produk --}}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-striped">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Nama Produk</th>
+                        <th>Qty</th>
+                        <th>Harga</th>
+                        <th>Sub Total</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="resultCart">
+                    <tr>
+                        <td colspan="6" class="text-center">Tidak ada data.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-        <div class="row mt-3">
-            <div class="col-2 offset-6">
-                <p>Total</p>
-                <p>Pajak 10 %</p>
-                <p>Total Bayar</p>
-            </div>
-            <div class="col-4 text-right">
-                <p id="subtotal">0</p>
-                <p id="taxAmount">0</p>
-                <p id="total">0</p>
+        {{-- Rincian Total --}}
+        <div class="row mt-4">
+            <div class="col-md-6 offset-md-6">
+                <table class="table table-sm table-bordered">
+                    <tr>
+                        <th>Total</th>
+                        <td class="text-right" id="subtotal">0</td>
+                    </tr>
+                    <tr>
+                        <th>Pajak 10%</th>
+                        <td class="text-right" id="taxAmount">0</td>
+                    </tr>
+                    <tr>
+                        <th>Diskon Kupon</th>
+                        <td class="text-right" id="discount">0</td>
+                    </tr>
+                    <tr>
+                        <th>Total Bayar</th>
+                        <td class="text-right font-weight-bold text-success" id="total">0</td>
+                    </tr>
+                </table>
             </div>
         </div>
 
-        <div class="col-6 offset-6">
-            <hr class="mt-0">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Cash</span>
+        {{-- Input Kupon & Cash --}}
+        <div class="row mt-2 mb-4">
+            <div class="col-md-6 offset-md-6">
+                <div class="input-group mb-2">
+                    <input type="text" id="kodeKupon" class="form-control" placeholder="Kode Kupon">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-info" onclick="terapkanKupon()">
+                            <i class="fas fa-tag mr-1"></i> Terapkan Kupon
+                        </button>
+                    </div>
                 </div>
-                <input type="text" name="cash" class="form-control @error('cash') is-invalid @enderror" placeholder="Jumlah Cash" value="{{ old('cash') }}">
+                <div id="alertKupon" class="text-danger mb-2"></div>
+
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-light">Cash</span>
+                    </div>
+                    <input type="text" name="cash" class="form-control @error('cash') is-invalid @enderror" placeholder="Jumlah Cash" value="{{ old('cash') }}">
+                    @error('cash')
+                    <div class="invalid-feedback d-block">
+                        {{ $message }}
+                    </div>
+                    @enderror
+                </div>
+                <input type="hidden" name="total_bayar" id="totalBayar" />
             </div>
-            <input type="hidden" name="total_bayar" id="totalBayar" />
-            @error('cash')
-            <div class="invalid-feedback d-block">
-                {{ $message }}
-            </div>
-            @enderror
         </div>
 
-        <div class="col-12 form-inline mt-3">
-            <a href="{{ route('transaksi.index') }}" class="btn btn-secondary mr-2">Ke Transaksi</a>
-            <a href="{{ route('cart.clear') }}" class="btn btn-danger">Kosongkan</a>
-            <button type="submit" class="btn btn-success ml-auto">
-                <i class="fas fa-money-bill-wave mr-2"></i> Bayar Transaksi
+        {{-- Tombol Aksi --}}
+        <div class="d-flex justify-content-between">
+            <div>
+                <a href="{{ route('transaksi.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i> Ke Transaksi
+                </a>
+                <a href="{{ route('cart.clear') }}" class="btn btn-outline-danger ml-2">
+                    <i class="fas fa-trash mr-1"></i> Kosongkan
+                </a>
+            </div>
+            <button type="submit" class="btn btn-outline-success">
+                <i class="fas fa-money-bill-wave mr-1"></i> Bayar Transaksi
             </button>
         </div>
     </div>
 </form>
+
+
 
 @push('scripts')
 <script>
@@ -119,6 +137,28 @@
         });
     });
 
+    function terapkanKupon() {
+    const kode = $('#kodeKupon').val();
+
+        $.ajax({
+            type: "POST",
+            url: "/cart/apply-coupon",
+            data: {
+                kode_kupon: kode,
+                _token: "{{ csrf_token() }}"
+            },
+            dataType: "json",
+            success: function(res) {
+                $('#alertKupon').html('<span class="text-success">' + res.message + '</span>');
+                fetchCart();
+            },
+            error: function(err) {
+                const msg = err.responseJSON?.error || 'Gagal menerapkan kupon.';
+                $('#alertKupon').html(msg);
+            }
+        });
+    }
+
     function fetchCart() {
         $.getJSON("/cart", function(response) {
             $('#resultCart').empty();
@@ -128,11 +168,13 @@
                 subtotal,
                 tax_amount,
                 total,
+                diskon,
                 extra_info
             } = response;
 
             $('#subtotal').html(rupiah(subtotal));
             $('#taxAmount').html(rupiah(tax_amount));
+            $('#discount').html(rupiah(diskon ?? 0));
             $('#total, #totalJumlah').html(rupiah(total));
             $('#totalBayar').val(total);
 
@@ -151,6 +193,7 @@
             }
         });
     }
+
 
     function fetchCariPelanggan(search) {
         $.getJSON("/transaksi/pelanggan", { search: search }, function(response) {
@@ -183,8 +226,12 @@
             title,
             quantity,
             price,
-            total_price
+            total_price,
+            options
         } = item;
+
+        const { diskon, harga_produk } = options;
+        const nilai_diskon = diskon ? `(-${diskon}%)`:'';
 
         const btn = `
             <button type="button" class="btn btn-xs btn-success mr-2" onclick="ePut('${hash}', 1)">
@@ -202,7 +249,7 @@
         const row = `<tr>
             <td>${title}</td>
             <td>${quantity}</td>
-            <td>${rupiah(price)}</td>
+            <td>${rupiah(price)}${nilai_diskon}</td>
             <td>${rupiah(total_price)}</td>
             <td>${btn}</td>
         </tr>`;

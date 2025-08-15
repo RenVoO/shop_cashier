@@ -36,7 +36,7 @@
                     </div>
                     @error('username')
                         <div class="d-block invalid-feedback">
-                            {{ $message }}
+                            Username Salah
                         </div>
                     @enderror
 

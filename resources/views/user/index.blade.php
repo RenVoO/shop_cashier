@@ -44,7 +44,7 @@
                         <th>#</th>
                         <th>Nama</th>
                         <th>Username</th>
-                        <th></th>
+                        <th>Role</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,6 +53,7 @@
                             <td>{{ $users->firstItem() + $key }}</td>
                             <td>{{ $user->nama }}</td>
                             <td>{{ $user->username }}</td>
+                            <td>{{ $user->role }}</td>
                             <td class="text-right">
                                 <a href="{{ route('user.edit', ['user' => $user->id]) }}"
                                     class="btn btn-xs text-success p-0 mr-1">

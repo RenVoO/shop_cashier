@@ -28,8 +28,13 @@
                 </div>
                 <div class="form-group">
                     <label>Harga Produk</label>
-                    <x-input name="harga" type="text" :value="$produk->harga" />
+                    <x-input name="harga" type="text" :value="$produk->harga_produk" />
                 </div>
+                <div class="form-group">
+                    <label>Diskon</label>
+                    <x-input name="diskon" type="text" :value="$produk->diskon" />
+                </div>
+
                 <div class="form-group">
                     <label>Kategori</label>
                     <x-select name="kategori_id" :options="$kategoris" :value="$produk->kategori_id" />

@@ -18,6 +18,8 @@ return new class extends Migration
             ->noActionOnUpdate();
             $table->string('kode_produk')->unique();
             $table->string('nama_produk');
+            $table->unsignedInteger('harga_produk');
+            $table->unsignedInteger('diskon')->default(0);
             $table->unsignedInteger('harga');
             $table->integer('stok')->default(0);
         });

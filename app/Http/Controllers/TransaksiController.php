@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DetilPenjualan;
 use App\Models\Pelanggan;
+use App\Models\Diskon;
 use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\User;
@@ -39,78 +40,121 @@ class TransaksiController extends Controller
             'tanggal' => date('d F Y')
         ]);
     }
-
-    public function store(Request $request)
+    
+public function store(Request $request)
     {
-        $request->validate([
-            'pelanggan_id' => ['required', 'exists:pelanggans,id'],
-            'cash' => ['required', 'numeric', 'gte:total_bayar']
-        ], [], [
-            'pelanggan_id' => 'pelanggan'
-        ]);
+    $request->validate([
+        'pelanggan_id' => ['required', 'exists:pelanggans,id'],
+        'cash' => ['required']
+    ], [], [
+        'pelanggan_id' => 'pelanggan'
+    ]);
 
-        $user = $request->user();
-        $lastPenjualan = Penjualan::orderBy('id', 'desc')->first();
+    $user = $request->user();
+    $cart = Cart::name($user->id);
+    $cartDetails = $cart->getDetails();
 
-        $cart = Cart::name($user->id);
-        $cartDetails = $cart->getDetails();
+    // Bersihkan format cash dari titik/koma
+    $cash = preg_replace('/[^\d]/', '', $request->cash);
 
-        $total = $cartDetails->get('total');
-        $kembalian = $request->cash - $total;
+    $total = $cartDetails->get('total');
+    $diskonSession = session('diskon');
+    $discount = 0;
 
-        $no = $lastPenjualan ? $lastPenjualan->id + 1 : 1;
-        $no = sprintf("%04d", $no);
-        $allItems = $cartDetails->get('items');
-foreach ($allItems as $key => $value) {
-      $item = $allItems->get($key);
-     $produk = Produk::find($item->id);
-if ($produk) {
-    if ($produk->stok < $item->quantity) {
-        // Kirim nama produk ke session
-                $cart->destroy();
+    // 1. Hitung total diskon global
+    if ($diskonSession && isset($diskonSession['jumlah'])) {
+        if ($diskonSession['tipe'] === 'persen') {
+            $discount = ($diskonSession['jumlah'] / 100) * $cartDetails->get('subtotal');
+        } elseif ($diskonSession['tipe'] === 'nominal') {
+            $discount = $diskonSession['jumlah'];
+        }
+    }
 
+    // 2. Generate nomor transaksi
+    $lastPenjualan = Penjualan::orderBy('id', 'desc')->first();
+    $no = $lastPenjualan ? $lastPenjualan->id + 1 : 1;
+    $no = sprintf("%04d", $no);
+
+    $fixtotal = $total - $discount;
+    $kembalian = $cash - $fixtotal;
+
+    // 3. Cek cash
+    if ($cash < $fixtotal) {
+        return redirect()->back()
+            ->withErrors(['cash' => 'Cash kurang dari total yang harus dibayar.'])
+            ->withInput();
+    }
+
+    // 4. Cek stok semua produk sebelum membuat Penjualan
+    $stokKurang = [];
+    foreach ($cartDetails->get('items') as $item) {
+        $produk = Produk::find($item->id);
+        if (!$produk || $produk->stok < $item->quantity) {
+            $stokKurang[] = $produk ? $produk->nama_produk : "Produk tidak ditemukan";
+        }
+    }
+
+    if (!empty($stokKurang)) {
         return redirect()
             ->route('transaksi.create')
-            ->with('store', 'gagal');
+            ->with('store', 'gagal')
+            ->with('stok_kurang', $stokKurang);
     }
-}
-        
-        $penjualan = Penjualan::create([
-            'user_id' => $user->id,
-            'pelanggan_id' => $cart->getExtraInfo('pelanggan.id'),
-            'nomor_transaksi' => date('Ymd') . $no,
-            'tanggal' => date('Y-m-d H:i:s'),
-            'total' => $total,
-            'tunai' => $request->cash,
-            'kembalian' => $kembalian,
-            'pajak' => $cartDetails->get('tax_amount'),
-            'subtotal' => $cartDetails->get('subtotal')
+
+    // 5. Simpan data Penjualan
+    $penjualan = Penjualan::create([
+        'user_id' => $user->id,
+        'pelanggan_id' => $cart->getExtraInfo('pelanggan.id'),
+        'nomor_transaksi' => date('Ymd') . $no,
+        'tanggal' => now(),
+        'subtotal' => $cartDetails->get('subtotal'),
+        'pajak' => $cartDetails->get('tax_amount'),
+        'diskon' => $discount,
+        'total' => $fixtotal,
+        'tunai' => $cash,
+        'kembalian' => $kembalian
+    ]);
+
+    // 6. Simpan detail penjualan & kurangi stok
+    foreach ($cartDetails->get('items') as $item) {
+        $produk = Produk::find($item->id);
+
+        $diskonNominal = 0;
+        if ($diskonSession && isset($diskonSession['jumlah'])) {
+            if (isset($diskonSession['produk_id']) && $diskonSession['produk_id'] == $produk->id) {
+                if ($diskonSession['tipe'] === 'persen') {
+                    $diskonNominal = ($item->subtotal * $diskonSession['jumlah']) / 100;
+                } elseif ($diskonSession['tipe'] === 'nominal') {
+                    $diskonNominal = $diskonSession['jumlah'] * $item->quantity;
+                }
+            }
+        }
+
+        DetilPenjualan::create([
+            'penjualan_id' => $penjualan->id,
+            'produk_id' => $item->id,
+            'harga_produk' => $item->price,
+            'jumlah' => $item->quantity,
+            'subtotal' => $item->subtotal,
+            'diskon' => $diskonNominal
         ]);
 
-        
-
-        foreach ($allItems as $key => $value) {
-            $item = $allItems->get($key);
-
-            DetilPenjualan::create([
-                'penjualan_id' => $penjualan->id,
-                'produk_id' => $item->id,
-                'harga_produk' => $item->price,
-                'jumlah' => $item->quantity,
-                'subtotal' => $item->subtotal
-            ]);
-
-            
-            $produk = Produk::find($item->id);
-
-    $produk->stok -= $item->quantity;
-    $produk->save();
-        }}
-
-        $cart->destroy();
-
-        return redirect()->route('transaksi.show', ['transaksi' => $penjualan->id]);
+        if ($produk) {
+            $produk->stok -= $item->quantity;
+            $produk->save();
+        }
     }
+
+    // 7. Bersihkan keranjang & session diskon
+    $cart->destroy();
+    session()->forget('diskon');
+
+    return redirect()->route('transaksi.show', ['transaksi' => $penjualan->id]);
+    }
+
+
+
+
 
     public function show(Request $request, Penjualan $transaksi)
     {

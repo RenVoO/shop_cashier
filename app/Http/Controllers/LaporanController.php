@@ -15,7 +15,7 @@ class LaporanController extends Controller
 
     public function harian(Request $request)
     {
-        $penjualan = Penjualan::join('users', 'users.id', 'penjualan.user_id')
+        $penjualan = Penjualan::join('users', 'users.id', 'penjualans.user_id')
            ->join('pelanggans', 'pelanggans.id', 'penjualans.pelanggan_id')
            ->whereDate('tanggal', $request->tanggal)
            ->select('penjualans.*', 'pelanggans.nama as nama_pelanggan', 'users.nama as nama_kasir')

@@ -13,27 +13,30 @@
 @push('scripts')
 <script>
     $(function () {
-        $.ajaxSetup({
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        });
-
-        $('#barcode').focus();
-
-        $('#resetBarcode').click(function () {
-            $('#barcode').focus();
-        });
-
-        $('#formBarcode').submit(function (e) {
-            e.preventDefault();
-            let kode_produk = $('#barcode').val();
-            if (kode_produk.length > 0) {
-                addItem(kode_produk);
-            }
-        });
+    $.ajaxSetup({
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
     });
+
+    $('#barcode').focus();
+
+    $('#resetBarcode').click(function () {
+        $('#barcode').focus();
+    });
+
+    $('#formBarcode').submit(function (e) {
+        e.preventDefault();
+        let kode_produk = $('#barcode').val();
+        if (kode_produk.length > 0) {
+            // Simpan kode produk dan tampilkan modal quantity
+            selectedKodeProduk = kode_produk;
+            $('#inputQuantity').val(1);
+            $('#modalQuantity').modal('show');
+        }
+    });
+});
 
     function addItem(kode_produk) {
         $('#msgErrorBarcode').removeClass('d-block').html('');

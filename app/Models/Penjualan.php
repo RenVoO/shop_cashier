@@ -17,6 +17,7 @@ class Penjualan extends Model
         'nomor_transaksi',
         'tanggal',
         'total',
+        'diskon',
         'tunai',
         'kembalian',
         'status',

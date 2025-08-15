@@ -25,14 +25,15 @@
                     <p>Status :
                         @if ($penjualan->status == 'selesai')
                             <span class="badge badge-success">Selesai</span>
-                        @endif
-                        @if ($penjualan->status == 'batal')
+                        @elseif ($penjualan->status == 'batal')
                             <span class="badge badge-danger">Dibatalkan</span>
                         @endif
                     </p>
                 </div>
             </div>
         </div>
+
+        {{-- TABEL PRODUK --}}
         <div class="card-body p-0">
             <table class="table table-striped table-bordered">
                 <thead>
@@ -41,33 +42,57 @@
                         <th>Nama Produk</th>
                         <th>Qty</th>
                         <th>Harga</th>
-                        <th>Sub Total</th>
-                    </tr>
+                        <th>Diskon Kupon</th>
+                        <th>Subtotal</th>
+                    </tr>   
                 </thead>
                 <tbody>
-                    @foreach ($detilPenjualan as $key => $item)
-                        <tr>
-                            <td>{{ $key + 1 }}</td>
-                            <td>{{ $item->nama_produk }}</td>
-                            <td>{{ $item->jumlah }}</td>
-                            <td>{{ number_format($item->harga_produk, 0, ',', '.') }}</td>
-                            <td>{{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
+                @foreach ($detilPenjualan as $key => $item)
+                    @php
+                // Ambil langsung diskon nominal dari database
+                $diskonNominal = $item->diskon ?? 0;
+                $subtotalSetelahDiskon = $item->subtotal - $diskonNominal;
+            @endphp
+            <tr>
+                <td>{{ $key + 1 }}</td>
+                <td>{{ $item->nama_produk }}</td>
+                <td>{{ $item->jumlah }}</td>
+                <td>{{ number_format($item->harga_produk, 0, ',', '.') }}</td>
+                 <td class="text-end">{{ number_format($penjualan->diskon, 0, ',', '.') }}</td>
+                <td>
+                    @if ($diskonNominal > 0)
+                        <span class="text-muted">
+                            {{ number_format($item->subtotal, 0, ',', '.') }}
+                        </span><br>
+                        <small>-{{ number_format($diskonNominal, 0, ',', '.') }}</small><br>
+                        <strong>{{ number_format($subtotalSetelahDiskon, 0, ',', '.') }}</strong>
+                    @else
+                        {{ number_format($item->subtotal, 0, ',', '.') }}
+                    @endif
+                </td>
+            </tr>
+                @endforeach
+            </tbody>
             </table>
         </div>
+
+        {{-- RINGKASAN --}}
         <div class="card-body">
             <div class="row">
                 <div class="col-6 offset-6 text-right">
                     <p>Sub Total : {{ number_format($penjualan->subtotal, 0, ',', '.') }}</p>
                     <p>Pajak 10% : {{ number_format($penjualan->pajak, 0, ',', '.') }}</p>
+                    @if ($penjualan->diskon > 0)
+                    <p>Diskon : -{{ number_format($penjualan->diskon, 0, ',', '.') }}</p>
+                    @endif
                     <p>Total : {{ number_format($penjualan->total, 0, ',', '.') }}</p>
-                    <p>Cash : {{ number_format($penjualan->tunal, 0, ',', '.') }}</p>
+                    <p>Cash : {{ number_format($penjualan->tunai, 0, ',', '.') }}</p>
                     <p>Kembalian : {{ number_format($penjualan->kembalian, 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>
+
+        {{-- FOOTER --}}
         <div class="card-footer form-inline">
             <a href="{{ route('transaksi.index') }}" class="btn btn-secondary mr-2">Ke Transaksi</a>
             @if ($penjualan->status == 'selesai')
@@ -82,6 +107,7 @@
         </div>
     </div>
 
+    {{-- MODAL --}}
     @push('modals')
         <div class="modal fade" id="modalBatal" tabindex="-1">
             <div class="modal-dialog modal-sm">

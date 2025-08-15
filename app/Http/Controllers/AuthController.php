@@ -18,8 +18,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'username' => 'Username atau Password yang diberikan salah.',
-        ])->onlyInput('username');
+            'password' => 'Username atau Password yang diberikan salah.',
+        ])->onlyInput('password');
     }   
 
     public function logout(Request $request) 

@@ -12,6 +12,7 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiskonController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,4 +54,6 @@ Route::middleware('auth')->group(function(){
     Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('laporan/harian', [LaporanController::class, 'harian'])->name('laporan.harian');
     Route::get('laporan/bulanan', [LaporanController::class, 'bulanan'])->name('laporan.bulanan');
+    Route::resource('diskon', DiskonController::class);
+    Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name('cart.apply-coupon');
 });

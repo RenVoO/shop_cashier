@@ -27,6 +27,10 @@
                     <x-input name="harga" type="text" />
                 </div>
                 <div class="form-group">
+                <label>Diskon</label>
+                <x-input name="diskon" type="text" />
+                </div>
+                <div class="form-group">
                     <label>Kategori</label>
                     <x-select name="kategori_id" :options="$kategoris" />
                 </div>

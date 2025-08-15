@@ -50,7 +50,8 @@ class DatabaseSeeder extends Seeder
             'kategori_id'=>1,
             'kode_produk'=>'1001',
             'nama_produk'=>'Chiki Taro',
-            'harga'=>5000
+            'harga'=>5000,
+            'harga_produk'=>5000,
         ]);
         
 
@@ -58,7 +59,8 @@ class DatabaseSeeder extends Seeder
             'kategori_id'=>2,
             'kode_produk'=>'1002',
             'nama_produk'=>'Le Mineral',
-            'harga'=>3500
+            'harga'=>3500,
+            'harga_produk'=>3500
         ]);
 
         \App\Models\stok::create([
@@ -139,6 +141,15 @@ class DatabaseSeeder extends Seeder
             'jumlah' => 1,
             'harga_produk' => 3500,
             'subtotal' => 3500,
+        ]);
+
+        \App\Models\Diskon::create([
+            'kode_kupon' => 'MAKANHEMAT',
+            'tipe_diskon' => 'persen',
+            'jumlah_diskon' => 10,
+            'kategori_id' => 1,
+            'minimal_belanja' => 50000,
+            'tanggal_kadaluarsa' => now()->addDays(30)
         ]);
 
     }
