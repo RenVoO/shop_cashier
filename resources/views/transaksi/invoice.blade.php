@@ -42,52 +42,77 @@
                         <th>Nama Produk</th>
                         <th>Qty</th>
                         <th>Harga</th>
-                        <th>Diskon Kupon</th>
+                        <th>Diskon Item</th>
                         <th>Subtotal</th>
                     </tr>   
                 </thead>
                 <tbody>
                 @foreach ($detilPenjualan as $key => $item)
                     @php
-                // Ambil langsung diskon nominal dari database
-                $diskonNominal = $item->diskon ?? 0;
-                $subtotalSetelahDiskon = $item->subtotal - $diskonNominal;
-            @endphp
-            <tr>
-                <td>{{ $key + 1 }}</td>
-                <td>{{ $item->nama_produk }}</td>
-                <td>{{ $item->jumlah }}</td>
-                <td>{{ number_format($item->harga_produk, 0, ',', '.') }}</td>
-                 <td class="text-end">{{ number_format($penjualan->diskon, 0, ',', '.') }}</td>
-                <td>
-                    @if ($diskonNominal > 0)
-                        <span class="text-muted">
-                            {{ number_format($item->subtotal, 0, ',', '.') }}
-                        </span><br>
-                        <small>-{{ number_format($diskonNominal, 0, ',', '.') }}</small><br>
-                        <strong>{{ number_format($subtotalSetelahDiskon, 0, ',', '.') }}</strong>
-                    @else
-                        {{ number_format($item->subtotal, 0, ',', '.') }}
-                    @endif
-                </td>
-            </tr>
+                        // Ambil diskon nominal untuk item ini dari database
+                        $diskonNominal = $item->diskon ?? 0;
+                        $subtotalSetelahDiskon = $item->subtotal - $diskonNominal;
+                    @endphp
+                    <tr>
+                        <td>{{ $key + 1 }}</td>
+                        <td>{{ $item->nama_produk }}</td>
+                        <td>{{ $item->jumlah }}</td>
+                        <td>{{ number_format($item->harga_produk, 0, ',', '.') }}</td>
+                        <td>
+                            @if ($diskonNominal > 0)
+                                <span class="text-success">-{{ number_format($diskonNominal, 0, ',', '.') }}</span>
+                            @else
+                                <span class="text-muted">0</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if ($diskonNominal > 0)
+                                <div>
+                                    <span class="text-muted small">{{ number_format($item->subtotal, 0, ',', '.') }}</span><br>
+                                    <strong class="text-success">{{ number_format($subtotalSetelahDiskon, 0, ',', '.') }}</strong>
+                                </div>
+                            @else
+                                <strong>{{ number_format($item->subtotal, 0, ',', '.') }}</strong>
+                            @endif
+                        </td>
+                    </tr>
                 @endforeach
-            </tbody>
+                </tbody>
             </table>
         </div>
 
         {{-- RINGKASAN --}}
         <div class="card-body">
             <div class="row">
-                <div class="col-6 offset-6 text-right">
-                    <p>Sub Total : {{ number_format($penjualan->subtotal, 0, ',', '.') }}</p>
-                    <p>Pajak 10% : {{ number_format($penjualan->pajak, 0, ',', '.') }}</p>
-                    @if ($penjualan->diskon > 0)
-                    <p>Diskon : -{{ number_format($penjualan->diskon, 0, ',', '.') }}</p>
-                    @endif
-                    <p>Total : {{ number_format($penjualan->total, 0, ',', '.') }}</p>
-                    <p>Cash : {{ number_format($penjualan->tunai, 0, ',', '.') }}</p>
-                    <p>Kembalian : {{ number_format($penjualan->kembalian, 0, ',', '.') }}</p>
+                <div class="col-6 offset-6">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Sub Total</strong></td>
+                            <td class="text-right"><strong>{{ number_format($penjualan->subtotal, 0, ',', '.') }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Pajak 10%</td>
+                            <td class="text-right">{{ number_format($penjualan->pajak, 0, ',', '.') }}</td>
+                        </tr>
+                        @if ($penjualan->diskon > 0)
+                        <tr>
+                            <td><span class="text-success">Total Diskon Kupon</span></td>
+                            <td class="text-right"><span class="text-success">-{{ number_format($penjualan->diskon, 0, ',', '.') }}</span></td>
+                        </tr>
+                        @endif
+                        <tr class="border-top">
+                            <td><strong>Total Bayar</strong></td>
+                            <td class="text-right"><strong class="text-primary">{{ number_format($penjualan->total, 0, ',', '.') }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Cash</td>
+                            <td class="text-right">{{ number_format($penjualan->tunai, 0, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kembalian</strong></td>
+                            <td class="text-right"><strong class="text-info">{{ number_format($penjualan->kembalian, 0, ',', '.') }}</strong></td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>
