@@ -15,9 +15,9 @@
             <div class="row">
                 <div class="col">
                     <p>No. Transaksi : {{ $penjualan->nomor_transaksi }}</p>
-                    <p>Nama Pelanggan : {{ $pelanggan->nama }}</p>
-                    <p>No. Telepon : {{ $pelanggan->nomor_tlp }}</p>
-                    <p>Alamat : {{ $pelanggan->alamat }}</p>
+<p>Nama Pelanggan : {{ $pelanggan->nama ?? 'Pelanggan' }}</p>
+<p>No. Telepon : {{ $pelanggan->nomor_tlp ?? 'Tidak ada' }}</p>
+<p>Alamat : {{ $pelanggan->alamat ?? 'Tidak ada' }}</p>
                 </div>
                 <div class="col">
                     <p>Tgl. Transaksi : {{ date('d/m/Y H:i:s', strtotime($penjualan->tanggal)) }}</p>

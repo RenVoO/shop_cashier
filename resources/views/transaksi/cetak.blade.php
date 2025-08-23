@@ -43,19 +43,34 @@
         </p>
         <hr>
         <p>
-            Kode Transaksi : {{ $penjualan->kode }} <br>
-            Tanggal : {{ date('d/m/Y H:i:s', strtotime($penjualan->tanggal)) }} <br>
-            Pelanggan : {{ $pelanggan->nama }} <br>
-            Kasir : {{ $user->nama }}
-        </p>
+    Kode Transaksi : {{ $penjualan->kode }} <br>
+    Tanggal : {{ date('d/m/Y H:i:s', strtotime($penjualan->tanggal)) }} <br>
+    Pelanggan : {{ $pelanggan->nama ?? 'Pelanggan' }} <br>
+    Kasir : {{ $user->nama }}
+</p>
+
         <table>
-            @foreach ($detilPenjualan as $row)
-                <tr>
-                    <td>{{ $row->jumlah }} x {{ $row->nama_produk }} x {{ $row->harga_produk }}</td>
-                    <td class="right">{{ number_format($row->subtotal, 0, ',', '.') }}</td>
-                </tr>
-            @endforeach
-        </table>
+    @foreach ($detilPenjualan as $row)
+        @php
+            $subtotalSetelahDiskon = $row->subtotal - $row->diskon;
+        @endphp
+        <tr>
+            <td>
+                {{ $row->jumlah }} x {{ $row->nama_produk }} x {{ number_format($row->harga_produk, 0, ',', '.') }}
+            </td>
+            <td class="right">
+                {{ number_format($subtotalSetelahDiskon, 0, ',', '.') }}
+            </td>
+        </tr>
+        @if($row->diskon > 0)
+            <tr>
+                <td colspan="2" class="right">
+                    <small style="color:red;">Diskon Kupon: -{{ number_format($row->diskon, 0, ',', '.') }}</small>
+                </td>
+            </tr>
+        @endif
+    @endforeach
+</table>
         <hr>
         <p class="right">
             Sub Total : {{ number_format($penjualan->subtotal, 0, ',', '.') }} <br>

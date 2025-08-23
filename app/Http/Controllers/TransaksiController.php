@@ -18,13 +18,13 @@ class TransaksiController extends Controller
         $search = $request->search;
 
         $penjualans = Penjualan::join('users', 'users.id', 'penjualans.user_id')
-            ->join('pelanggans', 'pelanggans.id', 'penjualans.pelanggan_id')
-            ->select('penjualans.*', 'users.nama as nama_kasir', 'pelanggans.nama as nama_pelanggan')
-            ->orderBy('id', 'desc')
-            ->when($search, function ($q, $search) {
-                return $q->where('nomor_transaksi', 'like', "%{$search}%");
-            })
-            ->paginate();
+    ->leftJoin('pelanggans', 'pelanggans.id', 'penjualans.pelanggan_id')
+    ->select('penjualans.*', 'users.nama as nama_kasir', \DB::raw("COALESCE(pelanggans.nama, 'Pelanggan') as nama_pelanggan"))
+    ->orderBy('id', 'desc')
+    ->when($search, function ($q, $search) {
+        return $q->where('nomor_transaksi', 'like', "%{$search}%");
+    })
+    ->paginate();
 
         if ($search) $penjualans->appends(['search' => $search]);
 
@@ -44,7 +44,6 @@ class TransaksiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'pelanggan_id' => ['required', 'exists:pelanggans,id'],
             'cash' => ['required']
         ], [], [
             'pelanggan_id' => 'pelanggan'
@@ -105,7 +104,7 @@ class TransaksiController extends Controller
         // 5. Simpan data Penjualan dengan total yang benar
         $penjualan = Penjualan::create([
             'user_id' => $user->id,
-            'pelanggan_id' => $cart->getExtraInfo('pelanggan.id'),
+            'pelanggan_id' => $cart->getExtraInfo('pelanggan.id') ?? null,
             'nomor_transaksi' => date('Ymd') . $no,
             'tanggal' => now(),
             'subtotal' => $subtotal,
@@ -199,20 +198,20 @@ class TransaksiController extends Controller
     }
 
     public function show(Request $request, Penjualan $transaksi)
-    {
-        $pelanggan = Pelanggan::find($transaksi->pelanggan_id);
-        $user = User::find($transaksi->user_id);
-        $detilPenjualan = DetilPenjualan::join('produks', 'produks.id', 'detil_penjualans.produk_id')
-            ->select('detil_penjualans.*', 'nama_produk')
-            ->where('penjualan_id', $transaksi->id)->get();
+{
+    $pelanggan = Pelanggan::find($transaksi->pelanggan_id);
+    $user = User::find($transaksi->user_id);
+    $detilPenjualan = DetilPenjualan::join('produks', 'produks.id', 'detil_penjualans.produk_id')
+        ->select('detil_penjualans.*', 'nama_produk')
+        ->where('penjualan_id', $transaksi->id)->get();
 
-        return view('transaksi.invoice', [
-            'penjualan' => $transaksi,
-            'pelanggan' => $pelanggan,
-            'user' => $user,
-            'detilPenjualan' => $detilPenjualan
-        ]);
-    }
+    return view('transaksi.invoice', [
+        'penjualan' => $transaksi,
+        'pelanggan' => $pelanggan ? $pelanggan : (object)['nama' => 'Pelanggan'],
+        'user' => $user,
+        'detilPenjualan' => $detilPenjualan
+    ]);
+}
 
     public function destroy(Request $request, Penjualan $transaksi)
     {
@@ -281,18 +280,18 @@ class TransaksiController extends Controller
     }
 
     public function cetak(Penjualan $transaksi)
-    {
-        $pelanggan = Pelanggan::find($transaksi->pelanggan_id);
-        $user = User::find($transaksi->user_id);
-        $detilPenjualan = DetilPenjualan::join('produks', 'produks.id', 'detil_penjualans.produk_id')
-            ->select('detil_penjualans.*', 'nama_produk')
-            ->where('penjualan_id', $transaksi->id)->get();
+{
+    $pelanggan = Pelanggan::find($transaksi->pelanggan_id);
+    $user = User::find($transaksi->user_id);
+    $detilPenjualan = DetilPenjualan::join('produks', 'produks.id', 'detil_penjualans.produk_id')
+        ->select('detil_penjualans.*', 'nama_produk')
+        ->where('penjualan_id', $transaksi->id)->get();
 
-        return view('transaksi.cetak', [
-            'penjualan' => $transaksi,
-            'pelanggan' => $pelanggan,
-            'user' => $user,
-            'detilPenjualan' => $detilPenjualan
-        ]);
-    }
+    return view('transaksi.cetak', [
+        'penjualan' => $transaksi,
+        'pelanggan' => $pelanggan ? $pelanggan : (object)['nama' => 'Pelanggan'],
+        'user' => $user,
+        'detilPenjualan' => $detilPenjualan
+    ]);
+}
 }
