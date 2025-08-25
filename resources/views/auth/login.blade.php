@@ -36,9 +36,10 @@
                     </div>
                     @error('username')
                         <div class="d-block invalid-feedback">
-                            Username Salah
+                            {{ $message }}
                         </div>
                     @enderror
+
 
                     <div class="input-group mt-3">
                         <input type="password" name="password"
