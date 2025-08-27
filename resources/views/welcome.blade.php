@@ -15,6 +15,8 @@
         :route="route('pelanggan.index')" :jumlah="$pelanggan->jumlah" />
     <x-box title="Produk" icon="fas fa-box-open" background="bg-success"
         :route="route('produk.index')" :jumlah="$produk->jumlah" />
+    <x-box title="Expired" icon="fas fa-ban" background="bg-danger"
+    :route="route('expired.index')" :jumlah="\App\Models\Expired::count()" />
 </div>
 <div class="card">
     <div class="card-body">

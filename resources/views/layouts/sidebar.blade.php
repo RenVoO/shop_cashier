@@ -24,6 +24,9 @@
         <x-nav-item title="Stok" icon="fas fa-pallet"
         :routes="['stok.index', 'stok.create']" />
 
+        <x-nav-item title="Expired" icon="fas fa-exclamation-triangle"
+        :routes="['expired.index']" />
+
         @can('admin')
         <x-nav-item title="Kategori" icon="fas fa-list"
           :routes="['kategori.index','kategori.create','kategori.edit']"/>

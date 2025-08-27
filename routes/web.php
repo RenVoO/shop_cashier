@@ -56,4 +56,6 @@ Route::middleware('auth')->group(function(){
     Route::get('laporan/bulanan', [LaporanController::class, 'bulanan'])->name('laporan.bulanan');
     Route::resource('diskon', DiskonController::class);
     Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name('cart.apply-coupon');
+    Route::resource('expired', \App\Http\Controllers\ExpiredController::class)->except(['edit', 'update', 'show']);
+    Route::get('expired/produk', [\App\Http\Controllers\ExpiredController::class, 'produk'])->name('expired.produk');
 });
